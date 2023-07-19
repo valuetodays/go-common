@@ -3,7 +3,7 @@ package cloud
 type ServiceRegistry interface {
 	Register(serviceInstance ServiceInstance) bool
 
-	FindService(serviceName string) []ServiceInstance
+	FindServices(serviceName string) []ServiceInstance
 
 	Deregister()
 }

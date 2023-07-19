@@ -106,7 +106,7 @@ func (c consulServiceRegistry) Deregister() {
 }
 
 // 查找指定服务
-func (c consulServiceRegistry) FindService(serviceName string) ([]cloud.ServiceInstance, error) {
+func (c consulServiceRegistry) FindServices(serviceName string) ([]cloud.ServiceInstance, error) {
 	if c.serviceInstances == nil {
 		return nil, nil
 	}
@@ -133,22 +133,13 @@ func (c consulServiceRegistry) FindService(serviceName string) ([]cloud.ServiceI
 			//targetServiceList = append(targetServiceList, serviceInfo.Address+":"+strconv.Itoa(serviceInfo.Port))
 		}
 	}
-	fmt.Println("targetServiceList", targetServiceList)
-	if len(targetServiceList) > 0 {
-		fmt.Println("call other consul client")
-		resp, err := RequestApi(http.MethodGet, targetServiceList[0], "/ping", nil)
-		if err != nil {
-			fmt.Println("request api failed", err)
-		}
-		fmt.Println("[请求API结果]:", resp)
-	}
 
 	return targetServiceList, nil
 }
 
 // 调用指定服务的
 func (c consulServiceRegistry) RequestApiByService(serviceName string, method string, path string, body io.Reader) (string, error) {
-	services, err := c.FindService(serviceName)
+	services, err := c.FindServices(serviceName)
 	if nil != err {
 		return "services is nil", err
 	}

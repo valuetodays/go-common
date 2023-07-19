@@ -1,17 +1,16 @@
 package consul
 
+// 本类是原生实现方式，不建议使用。
+// 建议使用 "github.com/go-micro/plugins/v4/registry/consul"
 import (
 	"crypto/rand"
 	"fmt"
-	"github.com/valuetodays/go-common/cloud"
-	"io"
-	"io/ioutil"
-	"math/big"
-	"net/http"
-	"strconv"
-	"strings"
-
 	"github.com/hashicorp/consul/api"
+	"github.com/valuetodays/go-common/cloud"
+	"github.com/valuetodays/go-common/utils"
+	"io"
+	"math/big"
+	"strconv"
 )
 
 type consulServiceRegistry struct {
@@ -156,34 +155,7 @@ func (c consulServiceRegistry) RequestApiByService(serviceName string, method st
 
 func RequestApiByServiceInstance(serviceInstance cloud.ServiceInstance, method string, path string, body io.Reader) (string, error) {
 	var ipAndPort = serviceInstance.GetHost() + ":" + strconv.Itoa(serviceInstance.GetPort())
-	return RequestApi(method, ipAndPort, path, body);
-}
-
-// 简单封装一个请求api的方法
-func RequestApi(method string, ipAndPort string, path string, body io.Reader) (string, error) {
-	// 1.如果没有http开头就给它加一个
-	if !strings.HasPrefix(ipAndPort, "http://") && !strings.HasPrefix(ipAndPort, "https://") {
-		ipAndPort = "http://" + ipAndPort
-	}
-	// 2. 新建一个request
-	req, _ := http.NewRequest(method, ipAndPort + path, body)
-
-	// 3. 新建httpclient，并且传入request
-	client := http.DefaultClient
-	res, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-
-	defer res.Body.Close()
-
-	// 4. 获取请求结果
-	buff, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return "", err
-	}
-
-	return string(buff), nil
+	return utils.DoCallApi(method, ipAndPort, path, body);
 }
 
 // new a consulServiceRegistry instance

@@ -6,9 +6,11 @@ import (
 	"time"
 )
 
-func NewDefaultServiceInstance(serviceId string, host string, port int, secure bool,
-	metadata map[string]string, instanceId string) (*DefaultServiceInstance, error) {
-
+func NewDefaultServiceInstance(
+		serviceId string,
+		host string, port int, secure bool,
+		metadata map[string]string,
+		instanceId string) (*DefaultServiceInstance, error) {
 	// 如果没有传入 IP 则获取一下，这个方法在多网卡的情况下，并不好用
 	//	if len(host) == 0 {
 	//		localIP, err := util.GetLocalIP()

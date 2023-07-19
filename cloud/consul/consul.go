@@ -1,8 +1,15 @@
 package consul
 
 import (
+	"crypto/rand"
 	"fmt"
 	"github.com/valuetodays/go-common/cloud"
+	"io"
+	"io/ioutil"
+	"math/big"
+	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/hashicorp/consul/api"
 )
@@ -96,6 +103,100 @@ func (c consulServiceRegistry) Deregister() {
 	_ = c.client.Agent().ServiceDeregister(c.localServiceInstance.GetInstanceId())
 
 	c.localServiceInstance = nil
+}
+
+// 查找指定服务
+func (c consulServiceRegistry) FindService(serviceName string) ([]cloud.ServiceInstance, error) {
+	if c.serviceInstances == nil {
+		return nil, nil
+	}
+
+	services, err := c.client.Agent().Services()
+	if nil != err {
+		fmt.Println("Services(): ", err)
+		return nil, err
+	}
+
+	var targetServiceList []cloud.ServiceInstance
+	for _, si := range services {
+		//fmt.Printf("-> %s serviceInfo: %v", serviceId, serviceInfo)
+		//fmt.Println("\n---> ", serviceId,
+		//	"kind", serviceInfo.Kind,
+		//	"id", serviceInfo.ID,
+		//	"service", serviceInfo.Service,
+		//	"address", serviceInfo.Address,
+		//	"port", serviceInfo.Port,
+		//)
+		if serviceName == si.Service {
+			var ci = cloud.DefaultServiceInstance{ServiceId: si.Service, Host: si.Address, Port: si.Port, Metadata: si.Meta}
+			targetServiceList = append(targetServiceList, ci)
+			//targetServiceList = append(targetServiceList, serviceInfo.Address+":"+strconv.Itoa(serviceInfo.Port))
+		}
+	}
+	fmt.Println("targetServiceList", targetServiceList)
+	if len(targetServiceList) > 0 {
+		fmt.Println("call other consul client")
+		resp, err := RequestApi(http.MethodGet, targetServiceList[0], "/ping", nil)
+		if err != nil {
+			fmt.Println("request api failed", err)
+		}
+		fmt.Println("[请求API结果]:", resp)
+	}
+
+	return targetServiceList, nil
+}
+
+// 调用指定服务的
+func (c consulServiceRegistry) RequestApiByService(serviceName string, method string, path string, body io.Reader) (string, error) {
+	services, err := c.FindService(serviceName)
+	if nil != err {
+		return "services is nil", err
+	}
+
+	length := len(services)
+	if length == 0 {
+		return "no service named '" + serviceName + "'", err
+	} else if length == 1 {
+		// todo 先不考虑权重
+		return RequestApiByServiceInstance(services[0], method, path, body);
+	} else {
+		// todo 先随机一个，后续可以使用轮询、权重等策略
+		randomBigInt, _ := rand.Int(rand.Reader, big.NewInt(int64(length)))
+		randomInt, _ := strconv.Atoi(randomBigInt.String()) // string转int
+		return RequestApiByServiceInstance(services[randomInt], method, path, body);
+	}
+}
+
+func RequestApiByServiceInstance(serviceInstance cloud.ServiceInstance, method string, path string, body io.Reader) (string, error) {
+	var ipAndPort = serviceInstance.GetHost() + ":" + strconv.Itoa(serviceInstance.GetPort())
+	return RequestApi(method, ipAndPort, path, body);
+}
+
+// 简单封装一个请求api的方法
+func RequestApi(method string, ipAndPort string, path string, body io.Reader) (string, error) {
+	// 1.如果没有http开头就给它加一个
+	if !strings.HasPrefix(ipAndPort, "http://") && !strings.HasPrefix(ipAndPort, "https://") {
+		ipAndPort = "http://" + ipAndPort
+	}
+	// 2. 新建一个request
+	req, _ := http.NewRequest(method, ipAndPort + path, body)
+
+	// 3. 新建httpclient，并且传入request
+	client := http.DefaultClient
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	defer res.Body.Close()
+
+	// 4. 获取请求结果
+	buff, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(buff), nil
 }
 
 // new a consulServiceRegistry instance

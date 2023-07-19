@@ -107,10 +107,6 @@ func (c consulServiceRegistry) Deregister() {
 
 // 查找指定服务
 func (c consulServiceRegistry) FindServices(serviceName string) ([]cloud.ServiceInstance, error) {
-	if c.serviceInstances == nil {
-		return nil, nil
-	}
-
 	services, err := c.client.Agent().Services()
 	if nil != err {
 		fmt.Println("Services(): ", err)

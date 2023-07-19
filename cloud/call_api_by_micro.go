@@ -6,7 +6,6 @@ import (
 	"go-micro.dev/v4/registry"
 	"io"
 	"math/big"
-	"net/http"
 	"strconv"
 )
 

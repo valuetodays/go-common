@@ -1,30 +1,33 @@
 package utils
-//
-//import (
-//	"fmt"
-//	"github.com/valuetodays/go-common/rest"
-//	"testing"
-//)
-//
-//func TestDoPostJson(t *testing.T) {
-//	const url = "http://api.valuetodays.cn/myLink/feign/listTreeByUserId.do"
-//	const req uint64 = 1
-//	myLinkDataR := rest.MyLinkDataR{}
-//	got := DoPostJson(url, req, &myLinkDataR)
-//	fmt.Println("got[", got, "]")
-//	fmt.Println("myLinkDataR", myLinkDataR)
-//	list := myLinkDataR.Data.ItemList
-//	PrintItemList(list)
-//	//fmt.Printf("r=%p\n\n", &myLinkDataR)
-//	//fmt.Printf("r2=%p\n\n", &myLinkDataR2)
-//}
-//
-//func PrintItemList(itemList []rest.ItemList) {
-//	for _, item := range itemList {
-//		fmt.Println("-> " + item.Title + item.Url)
-//		children := item.Children
-//		if len(children) > 0 {
-//			PrintItemList(children)
-//		}
-//	}
-//}
+
+import (
+	"fmt"
+	"github.com/valuetodays/go-common/rest"
+	"testing"
+)
+
+
+type IndexResp struct {
+	rest.R
+	Data IndexData `json:"data"`
+}
+
+type IndexData struct {
+	TimestampMs uint64 `json:"timestampMs"`
+	PoweredBy string `json:"poweredBy"`
+	IntValue uint32 `json:"intValue"`
+}
+
+func TestDoPostJson(t *testing.T) {
+	fmt.Println("please run simple-http-server in docs/simple-http-server.7z first!!!!")
+
+	const url = "http://localhost:18080"
+	const req uint64 = 1
+	indexResp := IndexResp{}
+	got := DoPostJson(url, req, &indexResp)
+	fmt.Println("got[", got, "]")
+	fmt.Println("indexResp", indexResp)
+	indexData := indexResp.Data
+	fmt.Printf("indexData-pointer=%p\n", &indexData)
+	fmt.Printf("indexData=%v\n", &indexData)
+}

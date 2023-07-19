@@ -17,15 +17,23 @@ type ApplicationConfig struct {
 
 func TestLoadApplicationConf(t *testing.T) {
 	var config = ApplicationConfig{}
-	config2, _ := LoadYamlFileAs("../resources/application-dev.yaml", config)
-	fmt.Printf("config2 → %+v\n", config2)
-	fmt.Print("config2:", config2)
+	_ = LoadYamlFileAs("../resources/application-dev.yaml", &config)
+	//fmt.Printf("config2 → %+v\n", config2)
+	fmt.Println("====")
+	fmt.Println("config:", config)
+	fmt.Println("config:", config.ConsulIpAndPort)
+	//fmt.Println("config2:", config2.ConsulIpAndPort)
 }
 
 func TestObjToYaml(t *testing.T) {
 	config := ApplicationConfig{}
 	config.ConsulIpAndPort = "aaaaa:8500"
 	config.UseDebug = true
+	config.Metadata = map[string]string{
+		"KEY1":"Value1",
+		"KEY2":"Value2",
+		"KEY3":"Value3",
+	}
 	bytes, _ := yaml.Marshal(config)
 	fmt.Print(string(bytes))
 }

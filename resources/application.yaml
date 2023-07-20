@@ -1,0 +1,6 @@
+applicationname: go-webapi0
+applicationport: 1234
+metadata:
+  maintainer: liulei
+  programLanguage: go
+  version: 0.0.1

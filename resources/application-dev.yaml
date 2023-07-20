@@ -1,5 +1,2 @@
 usedebug: true
 consulipandport: local-consul:8500
-metadata:
-  maintainer: liulei
-  programLanguage: go

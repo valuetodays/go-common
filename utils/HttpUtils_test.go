@@ -18,6 +18,8 @@ type IndexData struct {
 	IntValue uint32 `json:"intValue"`
 }
 
+// 测试调用http接口
+// 先解压docs/simple-http-server.7z，再mvn clean package，再java -jar xxx.jar
 func TestDoPostJson(t *testing.T) {
 	fmt.Println("please run simple-http-server in docs/simple-http-server.7z first!!!!")
 

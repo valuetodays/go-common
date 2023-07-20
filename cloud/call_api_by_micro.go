@@ -2,6 +2,7 @@ package cloud
 
 import (
 	"crypto/rand"
+	"errors"
 	"github.com/valuetodays/go-common/utils"
 	"go-micro.dev/v4/registry"
 	"io"
@@ -14,7 +15,9 @@ func CallApiByService(registry registry.Registry, serviceName string, method str
 	if nil != err {
 		return "could not get services", err
 	}
-
+	if services == nil || len(services) == 0 {
+		return "", errors.New("no instance named '"+serviceName+"' in registry")
+	}
 	matchedService := services[RandomWith(len(services))]
 	matchedNode := matchedService.Nodes[RandomWith(len(matchedService.Nodes))]
 
